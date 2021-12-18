@@ -43,8 +43,8 @@ FG_COLOR_GREEN=%F{2}
 local RESET_COLOR=%f%k%b
 local RESET=%{$RESET_COLOR%}
 local RETURN_CODE="%(?..$FG_COLOR_RED%? ↵$RESET)"
-local ARROW_SYMBOL=''
-local ZSH_TIME=%D{%H:%M}
+local ARROW_SYMBOL='>'
+local ZSH_TIME=%D{%H:%M:%S}
 local PADDING=''
 
 if [ $OS = "Darwin" ]; then
@@ -57,10 +57,10 @@ GIT_DIRTY_COLOR=%F{196}
 GIT_CLEAN_COLOR=%F{118}
 GIT_PROMPT_INFO=%F{012}
 
-ZSH_THEME_GIT_PROMPT_PREFIX="  "
+ZSH_THEME_GIT_PROMPT_PREFIX=" 🌿 "
 ZSH_THEME_GIT_PROMPT_SUFFIX="$GIT_PROMPT_INFO"
-ZSH_THEME_GIT_PROMPT_DIRTY=" $GIT_DIRTY_COLOR✘"
-ZSH_THEME_GIT_PROMPT_CLEAN=" $GIT_CLEAN_COLOR✔"
+ZSH_THEME_GIT_PROMPT_DIRTY=" $GIT_DIRTY_COLOR⚡"
+ZSH_THEME_GIT_PROMPT_CLEAN=" $GIT_CLEAN_COLOR🎄"
 
 ZSH_THEME_GIT_PROMPT_ADDED="%F{082}✚%f"
 ZSH_THEME_GIT_PROMPT_MODIFIED="%F{166}✹%f"
@@ -79,6 +79,8 @@ ZSH_THEME_GIT_PROMPT_UNTRACKED="%F{190]✭%f"
 [[ -n "$ZSH_POWERLINE_SHOW_GIT_BRANCH_ONLY" ]]  || ZSH_POWERLINE_SHOW_GIT_BRANCH_ONLY=false
 [[ -n "$ZSH_POWERLINE_SHOW_RETURN_CODE" ]]      || ZSH_POWERLINE_SHOW_RETURN_CODE=true
 [[ -n "$ZSH_POWERLINE_DIRECTORY_DEPTH" ]]       || ZSH_POWERLINE_DIRECTORY_DEPTH=2
+[[ -n "$ZSH_POWERLINE_SHOW_COMMIT_HASH" ]]      || ZSH_POWERLINE_SHOW_COMMIT_HASH=false
+[[ -n "$ZSH_POWERLINE_SHOW_COMMIT_MSG" ]]       || ZSH_POWERLINE_SHOW_COMMIT_MSG=false
 
 # a new line before prompt
 PROMPT="
@@ -117,9 +119,9 @@ fi
 
 # datetime
 if [ $ZSH_POWERLINE_SHOW_TIME = true ]; then
-	PROMPT="${PROMPT}${FG_COLOR_BASE3}${BG_COLOR_BASE01}${PADDING}${ZSH_TIME}"
+	PROMPT="${PROMPT}${FG_COLOR_BASE3}${BG_COLOR_BASE02}${PADDING}${ZSH_TIME}"
 	PROMPT="${PROMPT} ${FG_COLOR_BASE01}${BG_COLOR_BASE02}${ARROW_SYMBOL}"
-	PADDING=' '
+	PADDING=''
 fi
 
 # OS logo
@@ -146,13 +148,39 @@ if [ $ZSH_POWERLINE_SHOW_GIT_BRANCH_ONLY = true ]; then
 elif [ $ZSH_POWERLINE_SHOW_GIT_STATUS = true ]; then
 	PROMPT="${PROMPT}"'$(git_prompt_info)'
 fi
+PADDING=' '
+
+
+if [ $ZSH_POWERLINE_SHOW_COMMIT_HASH = true ]; then
+  git_hash() {
+    git rev-parse --git-dir > /dev/null 2>&1
+    if [ "$?" = "0" ]; then
+      HASH=$(git rev-parse --short HEAD)
+      echo ${FG_COLOR_BASE3}${FG_COLOR_CYAN}${HASH}
+    fi
+  }
+  PROMPT="${PROMPT}${PADDING}"'$(git_hash)'
+  PADDING=' -'
+fi
+
+if [ $ZSH_POWERLINE_SHOW_COMMIT_MSG = true ]; then
+  git_msg() {
+    git rev-parse --git-dir > /dev/null 2>&1
+    if [ "$?" = "0" ]; then
+      MSG=$(git log -1 --pretty=format:%B | head -c 50)
+      echo ${FG_COLOR_BASE3}${FG_COLOR_BLUE}  ${MSG}
+    fi
+  }
+  PROMPT="${PROMPT}${PADDING}"'$(git_msg)'
+  PADDING=' '
+fi
 
 # single line or double lines
 if [ $ZSH_POWERLINE_SINGLE_LINE = false ]; then
 	PROMPT="${PROMPT} %E
-  ${RESET}${FG_COLOR_BASE02}${ARROW_SYMBOL}"
+  ${RESET}${FG_COLOR_BASE01}${ARROW_SYMBOL}"
 else
-	PROMPT="${PROMPT} ${RESET}${FG_COLOR_BASE02}${ARROW_SYMBOL}"
+	PROMPT="${PROMPT} ${RESET}${FG_COLOR_BASE01}${ARROW_SYMBOL}"
 fi
 
 # reset
